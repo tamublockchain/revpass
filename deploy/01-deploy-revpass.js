@@ -3,7 +3,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts()
 
     log("----------------------------------------------------")
-    log("Deploying Lottery and waiting for confirmations...")
+    log("Deploying MainPass and waiting for confirmations...")
     const name = "SportsPass"
     const symbol = "REV"
     const supply = "1000"
