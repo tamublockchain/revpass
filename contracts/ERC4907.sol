@@ -1,17 +1,31 @@
 // SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.0;
 
+//this provides the ERC721 NFT standard
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+//imports the empty interface that we fill in here
 import "./IERC4907.sol";
 
 contract ERC4907 is ERC721, IERC4907 {
+    //this struct needs to contain the following 
+    /** 
+     * nftID - identifier that connects UIN on TAMU side
+     * ownerUIN - UIN of owner that is set when NFT is sent
+     * ownerAddr - address of owner wallet
+     * userAddr - address of user
+     * userUIN - UIN of user that is set at 
+     * expiryDate - unix timestamp of expiry date
+    */
     struct UserInfo {
         address user; // address of user role
         uint64 expires; // unix timestamp, user expires
     }
 
+    //list of all NFTs minted. why is this needed?
+    //probably add this to main pass
     mapping(uint256 => UserInfo) internal _users;
 
+    //not sure about this one
     constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
 
     /// @notice set the user and expires of a NFT
