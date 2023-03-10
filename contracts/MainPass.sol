@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 error MainPass__AboveMaxSupply();
 error MainPass__TransferFailed();
 
+/* Rentable extension of EIP-721 NFT */
 contract MainPass is ERC4907, Ownable {
     uint256 public totalSupply;
     uint256 private s_maxSupply;
@@ -22,22 +23,24 @@ contract MainPass is ERC4907, Ownable {
 
     /**
      * @dev only the owner (deployer) of the contract can mint non-fungible tokens
+     * mint and send one NFT
      */
     function mint(address to) external onlyOwner {
         if (totalSupply > s_maxSupply) {
             revert MainPass__AboveMaxSupply();
         }
         ++totalSupply;
-        _mint(to, totalSupply);
+        _mint(to, totalSupply); // use _safeMint instead?
     }
 
+    /* mint and send several NFTs */
     function massAirdrop(address[] calldata to) external onlyOwner {
         for (uint256 i = 0; i < to.length; ++i) {
             if (totalSupply > s_maxSupply) {
                 revert MainPass__AboveMaxSupply();
             }
             ++totalSupply;
-            _mint(to[i], totalSupply);
+            _mint(to[i], totalSupply); // use _safeMint instead?
         }
     }
 
