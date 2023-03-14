@@ -11,7 +11,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
  * @dev This inherits the ERC721 and the IERC4907 standards 
  */
 contract ERC4907 is ERC721, IERC4907 {
-    //this struct needs to contain the following 
+    //We need to include the following data in this nft
+    //not sure how much of it will/can be on/off chain
     /** 
      * nftID - identifier that connects UIN on TAMU side
      * ownerUIN - UIN of owner that is set when NFT is sent
@@ -117,7 +118,7 @@ contract ERC4907 is ERC721, IERC4907 {
 /// Questions and comments to address 
 ///
 ///
-/// 1. The struct should be changed to match the system design elements
+/// 1. See notes in UserInfo struct
 /// 2. What is the purpose of the mapping? Do we need that in this contract?
 /// 3. I don't think the constuctor is needed. It will be a constant 
 /// 4. Should we change user -> renter for clarity on our end. 2 actors: a `renter` and an `owner`
