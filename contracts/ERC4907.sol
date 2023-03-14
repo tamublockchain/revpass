@@ -4,33 +4,14 @@ pragma solidity ^0.8.0;
 import "./IERC4907.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-/**
- * @title ERC4907 Rentable NFT specifications based on EIP4907
- * @author Texas A&M Blockchain - tamublock@gmail.com
- * @notice A custom ERC4907 contract based on the Texas A&M Sports Pass
- * @dev This inherits the ERC721 and the IERC4907 standards 
- */
 contract ERC4907 is ERC721, IERC4907 {
-    //We need to include the following data in this nft
-    /** 
-     * nftID - identifier that connects UIN on TAMU side 
-     * ownerUIN - UIN of owner that is set when NFT is sent (This comes from 721)
-     * ownerAddr - address of owner wallet (This comes from 721)
-     * userAddr - address of user 
-     * userUIN - UIN of user that is set at (This needs to be added to the struct below)
-     * expiryDate - unix timestamp of expiry date
-    */
     struct UserInfo {
         address user; // address of user role
         uint64 expires; // unix timestamp, user expires
     }
 
-    //list of all NFTs minted. why is this needed?
-    //probably add this to main pass
     mapping(uint256 => UserInfo) internal _users;
 
-    //not sure about this one
-    //i dont think this constructor is needed. Symbol and name should be constants
     constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
 
     /**
@@ -68,7 +49,7 @@ contract ERC4907 is ERC721, IERC4907 {
     /**
      * @notice Get the expiry date for a RevPass
      * @dev The zero value indicates that there is no user
-     * @param tokenId The unique id of RevPass 
+     * @param tokenId The unique id of RevPass
      * @return The expiry date of the user (renter)
      */
     function userExpires(uint256 tokenId) public view virtual returns (uint256) {
@@ -104,7 +85,7 @@ contract ERC4907 is ERC721, IERC4907 {
     ) internal virtual override {
         // Call the parent implementation of this function to ensure any necessary checks are performed.
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    
+
         // If the token is being transferred to a different address and has a user record, delete the user record.
         if (from != to && _users[tokenId].user != address(0)) {
             delete _users[tokenId];
@@ -113,11 +94,3 @@ contract ERC4907 is ERC721, IERC4907 {
         }
     }
 }
-
-/// Questions and comments to address 
-///
-///
-/// 1. See notes in UserInfo struct
-/// 2. What is the purpose of the mapping? Do we need that in this contract?
-/// 3. I don't think the constuctor is needed. It will be a constant 
-/// 4. Should we change user -> renter for clarity on our end. 2 actors: a `renter` and an `owner`
