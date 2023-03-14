@@ -12,13 +12,12 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
  */
 contract ERC4907 is ERC721, IERC4907 {
     //We need to include the following data in this nft
-    //not sure how much of it will/can be on/off chain
     /** 
-     * nftID - identifier that connects UIN on TAMU side
-     * ownerUIN - UIN of owner that is set when NFT is sent
-     * ownerAddr - address of owner wallet
-     * userAddr - address of user
-     * userUIN - UIN of user that is set at 
+     * nftID - identifier that connects UIN on TAMU side 
+     * ownerUIN - UIN of owner that is set when NFT is sent (This comes from 721)
+     * ownerAddr - address of owner wallet (This comes from 721)
+     * userAddr - address of user 
+     * userUIN - UIN of user that is set at (This needs to be added to the struct below)
      * expiryDate - unix timestamp of expiry date
     */
     struct UserInfo {
