@@ -8,27 +8,27 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/interfaces/IERC721.sol";
 import "./IERC4907.sol";
 
-contract Marketplace {
+contract Marketplace is ReentrancyGuard {
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
 
-    Counters.Counter private _revPassListed;
+    Counters.Counter private _numRevPassListed;
     address private _marketOwner;
-    uint256 private _listingFee = .0001 ether; // cost to list a RevPass
-    // maps contract address to token id to properties of the rental listing
-    mapping(address => mapping(uint256 => Listing)) private _listingMap;
-    // maps nft contracts to set of the tokens that are listed
-    mapping(address => EnumerableSet.UintSet) private _nftContractTokensMap;
-    // tracks the nft contracts that have been listed
-    EnumerableSet.AddressSet private _nftContracts;
+    uint256 private _listingFee = .0001 ether; // cost to list a RevPass onto the marketplace
+
+    // If multiple collections: mapping(address => mapping(uint256 => Listing)) private _listingMap;
+    // maps token id to properties of the rental listing. Assuming there's only the RevPass collection. 
+    mapping(uint256 => Listing) private _listingMap;
+    // mapping are not iterable. Use EnumerableSet
+    EnumerableSet.UintSet private _nftTokensListed;
 
     struct Listing {
         address owner; // address of token owner
         address user; // address of renter or zero if none
-        address nftContract; // address of contract
+        address nftContract; // address of contract/collection
         uint256 tokenId; // tokenID of the listed NFT within the NFT collection
-        uint256 priceToRent; // cost to rent the NFT
+        uint256 priceToRent; // cost to rent the NFT. Prob a constant since all RevPasses are the same
         uint256 startDateUNIX; // when the nft can start being rented
         uint256 endDateUNIX; // when the nft can no longer be rented
         uint256 expires; // when the user can no longer rent it
@@ -79,10 +79,10 @@ contract Marketplace {
         require(priceToRent > 0, "Rental price should be greater than 0");
         require(startDateUNIX >= block.timestamp, "Start date cannot be in the past");
         require(endDateUNIX >= startDateUNIX, "End date cannot be before the start date");
-        require(_listingMap[nftContract][tokenId].nftContract == address(0), "This NFT has already been listed");
+        require(_listingMap[tokenId].nftContract == address(0), "This NFT has already been listed");
 
         payable(_marketOwner).transfer(_listingFee);
-        _listingMap[nftContract][tokenId] = Listing(
+        _listingMap[tokenId] = Listing(
             msg.sender,
             address(0),
             nftContract,
@@ -93,9 +93,8 @@ contract Marketplace {
             0
         );
 
-        _revPassListed.increment();
-        EnumerableSet.add(_nftContractTokensMap[nftContract], tokenId);
-        EnumerableSet.add(_nftContracts, nftContract);
+        _numRevPassListed.increment();
+        EnumerableSet.add(_nftTokensListed, tokenId);
         emit NFTListed(
             IERC721(nftContract).ownerOf(tokenId),
             address(0),
@@ -114,7 +113,7 @@ contract Marketplace {
         uint256 tokenId,
         uint64 expires
     ) public payable nonReentrant {
-        Listing storage listing = _listingMap[nftContract][tokenId];
+        Listing storage listing = _listingMap[tokenId];
         require(listing.user == address(0), "NFT already rented");
         require(expires <= listing.endDateUNIX, "Rental period exceeds max date rentable");
         // Transfer rental fee
@@ -126,6 +125,7 @@ contract Marketplace {
         listing.user = msg.sender;
         listing.expires = expires;
 
+        // TODO: Maybe take the RevPass off the marketplace after it has been rented? 
         emit NFTRented(
             IERC721(nftContract).ownerOf(tokenId),
             msg.sender,
@@ -140,21 +140,19 @@ contract Marketplace {
 
     // function to unlist your rental, refunding the user for any lost time
     function unlistNFT(address nftContract, uint256 tokenId) public payable nonReentrant {
-        Listing storage listing = _listingMap[nftContract][tokenId];
+        Listing storage listing = _listingMap[tokenId];
         require(listing.owner != address(0), "This NFT is not listed");
         require(listing.owner == msg.sender || _marketOwner == msg.sender , "Not approved to unlist NFT");
         // fee to be returned to user if unlisted before rental period is up
         uint256 refund = listing.priceToRent;
+        // need to write some tests. I think priceToRent is 0 if rent period expires. Or handle case where listing.user is address(0)
         require(msg.value >= refund, "Not enough ether to cover refund");
         payable(listing.user).transfer(refund);
         // clean up data
         IERC4907(nftContract).setUser(tokenId, address(0), 0);
-        EnumerableSet.remove(_nftContractTokensMap[nftContract], tokenId);
-        delete _listingMap[nftContract][tokenId];
-        if (EnumerableSet.length(_nftContractTokensMap[nftContract]) == 0) {
-            EnumerableSet.remove(_nftContracts, nftContract);
-        }
-        _revPassListed.decrement();
+        EnumerableSet.remove(_nftTokensListed, tokenId);
+        delete _listingMap[tokenId];
+        _numRevPassListed.decrement();
 
         emit NFTUnlisted(
             msg.sender,
@@ -173,16 +171,12 @@ contract Marketplace {
     * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.
     */
     function getAllListings() public view returns (Listing[] memory) {
-        Listing[] memory listings = new Listing[](_nftsListed.current());
+        Listing[] memory listings = new Listing[](_numRevPassListed.current());
+        uint256[] memory tokens = EnumerableSet.values(_nftTokensListed);
         uint256 listingsIndex = 0;
-        address[] memory nftContracts = EnumerableSet.values(_nftContracts);
-        for (uint i = 0; i < nftContracts.length; i++) {
-            address nftAddress = nftContracts[i];
-            uint256[] memory tokens = EnumerableSet.values(_nftContractTokensMap[nftAddress]);
-            for (uint j = 0; j < tokens.length; j++) {
-                listings[listingsIndex] = _listingMap[nftAddress][tokens[j]];
-                listingsIndex++;
-            }
+        for (uint j = 0; j < tokens.length; j++) {
+            listings[listingsIndex] = _listingMap[tokens[j]];
+            listingsIndex++;
         }
         return listings;
     }
