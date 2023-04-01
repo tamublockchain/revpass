@@ -156,7 +156,21 @@ contract RevPass is ERC4907 {
         if (block.timestamp <= uint256(_users[tokenId].expires)) {
             return dataUIN[tokenId].userUIN;
         } else {
-            return 0;
+            return getOwnerUIN(tokenId);
+        }
+    }
+
+    /**
+     * @notice Get the user (renter) address of an NFT
+     * @dev The zero address indicates that there is no user or the user (renter) is expired
+     * @param tokenId The unique id of RevPass
+     * @return The user (renter) address for this NFT
+     */
+    function userOf(uint256 tokenId) public view override returns (address) {
+        if (block.timestamp <= uint256(_users[tokenId].expires)) {
+            return _users[tokenId].user;
+        } else {
+            return ownerOf(tokenId);
         }
     }
 

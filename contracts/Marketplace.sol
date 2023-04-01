@@ -33,6 +33,7 @@ contract Marketplace is ReentrancyGuard {
         uint256 startDateUNIX; // when the nft can start being rented
         uint256 endDateUNIX; // when the nft can no longer be rented
         uint256 expires; // when the user can no longer rent it
+        bool isListed;
     }
     event NFTListed(
         address owner,
@@ -66,8 +67,10 @@ contract Marketplace is ReentrancyGuard {
     );
 
 
-    constructor() public {
+    address public nftcontract;
+    constructor() {
         _marketOwner = msg.sender;
+        nftcontract = 0xd9145CCE52D386f254917e481eB44e9943F39138;
     }
 
     // function to list NFT for rental
@@ -97,7 +100,8 @@ contract Marketplace is ReentrancyGuard {
             0,
             startDateUNIX,
             endDateUNIX,
-            expires
+            expires,
+            true
         );
 
         _numRevPassListed.increment();
@@ -125,12 +129,17 @@ contract Marketplace is ReentrancyGuard {
         uint256 endDateUNIX,
         uint256 ownerUIN
     ) public payable nonReentrant {
-        require(isRentableNFT(nftContract), "Contract is not an ERC4907");
+        //require owner == user otherwise throw "someone has already rented this"
+        //require statment that checks if isListed=True?
+        //change isListed to true
+        require(_listingMap[tokenId].owner == _listingMap[tokenId].user, "Someone has already rented this pass. You cannot relist");
+        require(_listingMap[tokenId].isListed == false, "This has already been listed");
+        //require(isRentableNFT(nftContract), "Contract is not an ERC4907");
         require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not owner of nft");
         require(priceToRent > 0, "Rental price should be greater than 0");
         require(startDateUNIX >= block.timestamp, "Start date cannot be in the past");
         require(endDateUNIX >= startDateUNIX, "End date cannot be before the start date");
-        require(_listingMap[tokenId].nftContract == address(0), "This NFT has already been listed");
+        require(nftcontract == 0xd9145CCE52D386f254917e481eB44e9943F39138, "You can only list RevPass NFTs");
 
         _listingMap[tokenId] = Listing(
             msg.sender,
@@ -142,7 +151,8 @@ contract Marketplace is ReentrancyGuard {
             priceToRent,
             startDateUNIX,
             endDateUNIX,
-            0
+            0,
+            true
         );
 
         _numRevPassListed.increment();
@@ -179,7 +189,7 @@ contract Marketplace is ReentrancyGuard {
         IRevPass(nftContract).setUser(tokenId, msg.sender, expires, userUIN);
         listing.user = msg.sender;
         listing.expires = expires;
-
+        listing.isListed = false;
         emit NFTRented(
             IERC721(nftContract).ownerOf(tokenId),
             msg.sender,
