@@ -15,5 +15,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         // we need to wait if on a live network so we can verify properly
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+    const Lotto = await deploy("Marketplace", {
+        from: deployer,
+        log: true,
+        // we need to wait if on a live network so we can verify properly
+        waitConfirmations: network.config.blockConfirmations || 1,
+        })
 }
 module.exports.tags = ["all", "revpass"]
+

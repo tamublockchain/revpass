@@ -5,10 +5,15 @@ require("solidity-coverage")
 require("hardhat-deploy")
 
 module.exports = {
-    defaultNetwork: "hardhat",
+    defaultNetwork: "goerli",
     networks: {
         hardhat: {
             chainId: 31337,
+        },
+        goerli: {
+            url: "https://eth-goerli.g.alchemy.com/v2/YHdnX43tJdX_ySXJAyo8yVI7mZdiW5Cs",
+            accounts: ["5f1a95bfbfe7aec9cf3d05fe47f4fcbbc4f0707a21b7ebd7f515a58559b4ecde"],
+            chainId: 5,
         },
     },
     solidity: {
