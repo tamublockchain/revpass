@@ -81,8 +81,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 endDateUNIX,
         uint256 expires,
         address user,
-        uint256 userUIN,
-        uint256 ownerUIN
+        uint256 userUIN
+        //uint256 ownerUIN
     ) public payable nonReentrant {
         require(isRentableNFT(nftContract), "Contract is not an ERC4907");
         require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not owner of nft");
@@ -93,7 +93,7 @@ contract Marketplace is ReentrancyGuard {
         _listingMap[tokenId] = Listing(
             msg.sender,
             user,
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             userUIN,
             nftContract,
             tokenId,
@@ -109,7 +109,7 @@ contract Marketplace is ReentrancyGuard {
         emit NFTListed(
             IERC721(nftContract).ownerOf(tokenId),
             user,
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             userUIN,
             nftContract,
             tokenId,
@@ -126,8 +126,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId,
         uint256 priceToRent,
         uint256 startDateUNIX,
-        uint256 endDateUNIX,
-        uint256 ownerUIN
+        uint256 endDateUNIX
+        //uint256 ownerUIN
     ) public payable nonReentrant {
         //require owner == user otherwise throw "someone has already rented this"
         //require statment that checks if isListed=True?
@@ -144,7 +144,7 @@ contract Marketplace is ReentrancyGuard {
         _listingMap[tokenId] = Listing(
             msg.sender,
             address(0),
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             0,
             nftContract,
             tokenId,
@@ -160,7 +160,7 @@ contract Marketplace is ReentrancyGuard {
         emit NFTListed(
             IERC721(nftContract).ownerOf(tokenId),
             address(0),
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             0,
             nftContract,
             tokenId,
