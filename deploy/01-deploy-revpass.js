@@ -4,11 +4,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     log("----------------------------------------------------")
     log("Deploying MainPass and waiting for confirmations...")
-    const name = "SportsPass"
+    const name = "RevPass"
     const symbol = "REV"
     const supply = "1000"
     const args = [name, symbol, supply]
-    const Lottery = await deploy("MainPass", {
+    const Lottery = await deploy("RevPass", {
         from: deployer,
         args: args,
         log: true,
@@ -16,4 +16,4 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         waitConfirmations: network.config.blockConfirmations || 1,
     })
 }
-module.exports.tags = ["all", "mainpass"]
+module.exports.tags = ["all", "revpass"]
