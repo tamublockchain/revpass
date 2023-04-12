@@ -21,7 +21,7 @@ contract ERC4907 is ERC721, IERC4907 {
      * @param user The temporary user (renter) of RevPass
      * @param expires UNIX timestamp of when user access expires
      */
-    function setUser(uint256 tokenId, address user, uint64 expires) public virtual {
+    function setUser(uint256 tokenId, address user, uint64 expires) public virtual override{
         require(
             _isApprovedOrOwner(msg.sender, tokenId),
             "ERC721: transfer caller is not owner nor approved"
@@ -38,7 +38,7 @@ contract ERC4907 is ERC721, IERC4907 {
      * @param tokenId The unique id of RevPass
      * @return The user (renter) address for this NFT
      */
-    function userOf(uint256 tokenId) public view virtual returns (address) {
+    function userOf(uint256 tokenId) public view virtual override returns (address) {
         if (block.timestamp <= uint256(_users[tokenId].expires)) {
             return _users[tokenId].user;
         } else {
@@ -52,7 +52,7 @@ contract ERC4907 is ERC721, IERC4907 {
      * @param tokenId The unique id of RevPass
      * @return The expiry date of the user (renter)
      */
-    function userExpires(uint256 tokenId) public view virtual returns (uint256) {
+    function userExpires(uint256 tokenId) public view virtual override returns (uint256) {
         return _users[tokenId].expires;
     }
 

@@ -31,8 +31,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId; // tokenID of the listed NFT within the NFT collection
         uint256 priceToRent; // cost to rent the NFT. Prob a constant since all RevPasses are the same
         uint256 startDateUNIX; // when the nft can start being rented
-        uint256 endDateUNIX; // when the nft can no longer be rented
-        uint256 expires; // when the user can no longer rent it
+        uint64 endDateUNIX; // when the nft can no longer be rented
+        //uint64 expires; // when the user can no longer rent it
         bool isListed;
     }
     event NFTListed(
@@ -44,8 +44,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId,
         uint256 priceToRent,
         uint256 startDateUNIX,
-        uint256 endDateUNIX,
-        uint256 expires
+        uint64 endDateUNIX
+        // uint256 expires
     );
     event NFTRented(
         address owner,
@@ -56,8 +56,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId,
         uint256 rentalFee, // cost to rent NFT
         uint256 startDateUNIX,
-        uint256 endDateUNIX,
-        uint64 expires
+        uint64 endDateUNIX
+        //uint64 expires
     );
     event NFTUnlisted(
         address unlistSender,
@@ -78,11 +78,11 @@ contract Marketplace is ReentrancyGuard {
         address nftContract,
         uint256 tokenId,
         uint256 startDateUNIX,
-        uint256 endDateUNIX,
-        uint256 expires,
+        uint64 endDateUNIX,
+        //uint256 expires,
         address user,
-        uint256 userUIN,
-        uint256 ownerUIN
+        uint256 userUIN
+        //uint256 ownerUIN
     ) public payable nonReentrant {
         require(isRentableNFT(nftContract), "Contract is not an ERC4907");
         require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not owner of nft");
@@ -93,14 +93,14 @@ contract Marketplace is ReentrancyGuard {
         _listingMap[tokenId] = Listing(
             msg.sender,
             user,
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             userUIN,
             nftContract,
             tokenId,
             0,
             startDateUNIX,
             endDateUNIX,
-            expires,
+            //expires,
             true
         );
 
@@ -109,14 +109,14 @@ contract Marketplace is ReentrancyGuard {
         emit NFTListed(
             IERC721(nftContract).ownerOf(tokenId),
             user,
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             userUIN,
             nftContract,
             tokenId,
             0,
             startDateUNIX,
-            endDateUNIX,
-            expires
+            endDateUNIX
+            //expires
         );
     }
 
@@ -126,8 +126,8 @@ contract Marketplace is ReentrancyGuard {
         uint256 tokenId,
         uint256 priceToRent,
         uint256 startDateUNIX,
-        uint256 endDateUNIX,
-        uint256 ownerUIN
+        uint64 endDateUNIX
+        //uint256 ownerUIN
     ) public payable nonReentrant {
         //require owner == user otherwise throw "someone has already rented this"
         //require statment that checks if isListed=True?
@@ -144,14 +144,14 @@ contract Marketplace is ReentrancyGuard {
         _listingMap[tokenId] = Listing(
             msg.sender,
             address(0),
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             0,
             nftContract,
             tokenId,
             priceToRent,
             startDateUNIX,
             endDateUNIX,
-            0,
+            //0,
             true
         );
 
@@ -160,14 +160,14 @@ contract Marketplace is ReentrancyGuard {
         emit NFTListed(
             IERC721(nftContract).ownerOf(tokenId),
             address(0),
-            ownerUIN,
+            IRevPass(nftContract).getOwnerUIN(tokenId),
             0,
             nftContract,
             tokenId,
             priceToRent,
             startDateUNIX,
-            endDateUNIX,
-            0
+            endDateUNIX
+            //0
         );
     }
 
@@ -175,20 +175,20 @@ contract Marketplace is ReentrancyGuard {
     function rentNFT(
         address nftContract,
         uint256 tokenId,
-        uint64 expires,
+        //uint64 expires,
         uint256 userUIN
     ) public payable nonReentrant {
         Listing storage listing = _listingMap[tokenId];
         require(listing.user == address(0), "NFT already rented");
-        require(expires <= listing.endDateUNIX, "Rental period exceeds max date rentable");
+        //require(expires <= listing.endDateUNIX, "Rental period exceeds max date rentable");
         // Transfer rental fee
         uint256 rentalFee = listing.priceToRent;
         require(msg.value >= rentalFee, "Not enough ether to cover rental period");
         payable(listing.owner).transfer(rentalFee);
         // Update listing
-        IRevPass(nftContract).setUser(tokenId, msg.sender, expires, userUIN);
+        IRevPass(nftContract).setUser(tokenId, msg.sender, _listingMap[tokenId].endDateUNIX, userUIN);
         listing.user = msg.sender;
-        listing.expires = expires;
+        // listing.expires = _listingMap[tokenId].expires;
         listing.isListed = false;
         emit NFTRented(
             IERC721(nftContract).ownerOf(tokenId),
@@ -199,8 +199,7 @@ contract Marketplace is ReentrancyGuard {
             tokenId,
             rentalFee,
             listing.startDateUNIX,
-            listing.endDateUNIX,
-            expires
+            listing.endDateUNIX
         );
     }
 
