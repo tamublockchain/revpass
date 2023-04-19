@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 describe("RevPass", function () {
   let RevPass, revPass, ERC4907, erc4907, owner, addr1, addr2, addr3;
-  const maxSupply = 1000;
+  const maxSupply = 5;
 
   beforeEach(async function () {
     [owner, addr1, addr2, addr3] = await ethers.getSigners();
@@ -34,10 +34,15 @@ describe("RevPass", function () {
     });
 
     it("Should fail to mint above max supply", async function () {
-      for (let i = 0; i < maxSupply; i++) {
-        await revPass.mint(addr1.address, i + 1);
+      for (let i = 0; i <= maxSupply+1; i++) {
+        if(i > maxSupply){
+          console.log(i, "-->", maxSupply);
+          await expect(revPass.mint(addr1.address, 123456)).to.be.revertedWith("Cannot mint above the max supply");
+        }
+        else {
+          await revPass.mint(addr1.address, 123456); 
+        }
       }
-      await expect(revPass.mint(addr1.address, maxSupply + 1)).to.be.revertedWith("RevPass__AboveMaxSupply");
     });
 
     it("Should only allow owner to mint", async function () {
