@@ -113,8 +113,12 @@ describe("RevPass", function () {
 		});
 		
 		it("Should set user and user UIN successfully", async function () {
-      const revPassAsAddr1 = revPass.connect(addr1);
-      await revPassAsAddr1.setUser(1, addr2.address, 1893456000, 234567);
+      await revPass.mint(addr1.address, 123456);
+      console.log(await revPass.userOf(1))
+      //await revPass.setUser(1, addr2.address, 1893456000, 234567);
+      //await revPassAsAddr1.setUser(1, addr2.address, 1893456000, 234567);
+      //expect(await revPass.userOf(1)).to.equal(addr2.address);
+      //expect(await revPass.getUserUIN(1)).to.equal(234567);
       expect(await revPass.userOf(1)).to.equal(addr2.address);
       expect(await revPass.getUserUIN(1)).to.equal(234567);
     });
