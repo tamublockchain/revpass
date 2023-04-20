@@ -111,7 +111,7 @@ contract RevPass is ERC4907 {
      * @param _userUIN UIN of the user to be set
      */
     function setUser(uint256 tokenId, address user, uint64 expires, uint256 _userUIN) external {
-        setUser(tokenId, user, expires);
+        super.setUser(tokenId, user, expires);
         UINData storage data = dataUIN[tokenId];
         data.userUIN = _userUIN;
     }
