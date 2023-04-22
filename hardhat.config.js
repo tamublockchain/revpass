@@ -3,6 +3,8 @@ require("hardhat-gas-reporter")
 require("@nomiclabs/hardhat-etherscan")
 require("solidity-coverage")
 require("hardhat-deploy")
+//require("@nomiclabs/hardhat-waffle");
+const { task } = require("hardhat/config");
 
 module.exports = {
     defaultNetwork: "goerli",

@@ -37,11 +37,12 @@ contract RevPass is ERC4907 {
     /**
      * @notice mint a singular RevPass
      * @dev only the owner (deployer) of the contract can send one NFT
+     * @dev the custom error was removed 4/19/23 because the Chai can't seem to handle testing frameworks
      * @param to address of the account receiving the newly-minted token
      */
     function mint(address to, uint256 ownerUIN) external onlyOwner {
         if (totalSupply > s_maxSupply) {
-            revert RevPass__AboveMaxSupply();
+            revert("Cannot mint above the max supply");
         }
         ++totalSupply;
         setOwnerUIN(totalSupply, ownerUIN);
